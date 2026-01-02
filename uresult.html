@@ -1317,14 +1317,14 @@
     <!-- Loading Overlay -->
     <div class="loading-overlay" id="loadingOverlay">
         <div class="loading-spinner"></div>
-        <div class="loading-text">Loading Live Data from Google Sheets...</div>
+        <div class="loading-text">Loading Live Data...</div>
         <p style="font-size: 0.9em; margin-top: 10px; opacity: 0.9;">🔄 Fetching latest student records</p>
     </div>
 
     <div class="container">
         <div class="header">
             <h1>LT Safiullah (Shaheed) EDN Academy 
-                <span class="live-indicator" title="Live data from Google Sheets"></span>
+                <span class="live-indicator" title="Live data"></span>
             </h1>
             <p>2nd Assessment Result 2025</p>
         </div>
@@ -1497,7 +1497,7 @@
                     }
                 });
                 
-                console.log('✅ All data loaded successfully from Google Sheets!');
+                console.log('✅ All data loaded successfully');
                 
                 // Prepare high achievers data (but don't display yet)
                 displayAllHighAchievers();
@@ -1505,8 +1505,8 @@
                 hideLoading();
                 
             } catch (error) {
-                console.error('❌ Error loading sheet data:', error);
-                alert('Failed to load data from Google Sheets. Please check your internet connection and refresh the page.');
+                console.error('❌ Error loading data:', error);
+                alert('Failed to load result. Please check your internet connection and refresh the page.');
                 hideLoading();
             }
         }
