@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Question Paper Generator</title>
+    <script src="https://cdn.jsdelivr.net/npm/docx@7.8.2/build/index.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #000000;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2d3436;
+            margin-bottom: 1rem;
+            font-size: 2rem;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #636e72;
+            margin-bottom: 2rem;
+            font-size: 1rem;
+        }
+
+        .info-box {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            border-radius: 8px;
+        }
+
+        .info-box h3 {
+            color: #2d3436;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .info-box p {
+            color: #636e72;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .header-inputs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-group label {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #2d3436;
+            font-size: 0.9rem;
+        }
+
+        .input-group input {
+            padding: 0.75rem;
+            border: 2px solid #dfe6e9;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            transition: border 0.3s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .section {
+            margin-bottom: 2rem;
+        }
+
+        .section h2 {
+            color: #2d3436;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section h2 span {
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 1rem;
+            border: 2px solid #dfe6e9;
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.95rem;
+            resize: vertical;
+            transition: border 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .format-hint {
+            margin-top: 0.5rem;
+            font-size: 0.85rem;
+            color: #636e72;
+            font-style: italic;
+        }
+
+        .btn-generate {
+            width: 100%;
+            padding: 1.25rem;
+            background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 2rem;
+        }
+
+        .btn-generate:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 184, 148, 0.3);
+        }
+
+        .btn-generate:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .example {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 1rem;
+            margin-top: 0.5rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+        }
+
+        .example strong {
+            color: #856404;
+        }
+
+        .example pre {
+            margin-top: 0.5rem;
+            background: white;
+            padding: 0.75rem;
+            border-radius: 4px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📝 Question Paper Generator</h1>
+        <p class="subtitle">Just paste your questions and generate professional DOCX!</p>
+
+        <div class="info-box">
+            <h3>📋 How to Use</h3>
+            <p>1. Fill in the exam details below<br>
+               2. Paste your questions in the three boxes (Section A, B, and C)<br>
+               3. Click "Generate DOCX" - that's it!</p>
+        </div>
+
+        <!-- Header Inputs -->
+        <div class="header-inputs">
+            <div class="input-group">
+                <label>Institution Name</label>
+                <input type="text" id="institutionName" value="EDN ACADEMY">
+            </div>
+            <div class="input-group">
+                <label>Exam Title</label>
+                <input type="text" id="examTitle" value="SECOND ASSESSMENT BIOLOGY SSC–I">
+            </div>
+            <div class="input-group">
+                <label>Time Allowed</label>
+                <input type="text" id="timeAllowed" value="2hr">
+            </div>
+            <div class="input-group">
+                <label>Section A Marks</label>
+                <input type="number" id="sectionAMarks" value="15">
+            </div>
+            <div class="input-group">
+                <label>Section B Marks/Q</label>
+                <input type="number" id="sectionBMarks" value="3">
+            </div>
+            <div class="input-group">
+                <label>Section C Marks/Q</label>
+                <input type="number" id="sectionCMarks" value="7">
+            </div>
+        </div>
+
+        <!-- Section A -->
+        <div class="section">
+            <h2><span>A</span> Section A - MCQs</h2>
+            <textarea id="sectionA" placeholder="Paste your MCQs here..."></textarea>
+            <div class="format-hint">Format: Each question starts with number, then options A. B. C. D. on separate lines</div>
+            <div class="example">
+                <strong>Example Format:</strong>
+                <pre>1. What is the main advantage of using an AI HTML coding tool with live preview?
+A. Faster internet speed
+B. Immediate visual feedback of code
+C. Automatic hosting of websites
+D. No need to write any code
+
+2. Which organelle is called powerhouse of the cell?
+A. Mitochondria
+B. Nucleus
+C. Ribosome
+D. Chloroplast</pre>
+            </div>
+        </div>
+
+        <!-- Section B -->
+        <div class="section">
+            <h2><span>B</span> Section B - Short Questions</h2>
+            <textarea id="sectionB" placeholder="Paste your short questions here..."></textarea>
+            <div class="format-hint">Format: One question per line. Use || for OR alternative</div>
+            <div class="example">
+                <strong>Example Format:</strong>
+                <pre>Define photosynthesis.
+What is cell division? || Explain mitosis process.
+Name types of tissues.</pre>
+            </div>
+        </div>
+
+        <!-- Section C -->
+        <div class="section">
+            <h2><span>C</span> Section C - Long Questions</h2>
+            <textarea id="sectionC" placeholder="Paste your long questions here..."></textarea>
+            <div class="format-hint">Format: One question per line. Use || for OR alternative</div>
+            <div class="example">
+                <strong>Example Format:</strong>
+                <pre>Explain the process of photosynthesis in detail. || Describe cellular respiration and its stages.
+What is the nervous system? Explain its parts.</pre>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Generating your question paper...</p>
+        </div>
+
+        <button class="btn-generate" id="generateBtn" onclick="generateDocx()" disabled>
+            🎓 Loading... Please wait
+        </button>
+    </div>
+
+    <script>
+        // Wait for the page and library to fully load
+        window.addEventListener('load', function() {
+            const btn = document.getElementById('generateBtn');
+            
+            console.log('Page loaded. Checking for docx library...');
+            console.log('docx available?', typeof docx);
+            console.log('window.docx?', typeof window.docx);
+            
+            // Check multiple times for the library
+            let attempts = 0;
+            const checkLibrary = setInterval(function() {
+                attempts++;
+                console.log('Attempt', attempts, '- docx type:', typeof docx);
+                
+                if (typeof docx !== 'undefined') {
+                    btn.disabled = false;
+                    btn.textContent = '🎓 Generate DOCX Question Paper';
+                    btn.style.background = 'linear-gradient(135deg, #00b894 0%, #00cec9 100%)';
+                    clearInterval(checkLibrary);
+                    console.log('Library loaded successfully!');
+                } else if (attempts > 15) {
+                    btn.textContent = '❌ Library failed to load - Try refreshing or check internet';
+                    btn.style.background = '#ff7675';
+                    clearInterval(checkLibrary);
+                    console.error('Failed to load docx library after 15 attempts');
+                }
+            }, 500);
+        });
+
+        async function generateDocx() {
+            const loading = document.getElementById('loading');
+            loading.classList.add('active');
+
+            try {
+                // Wait for docx library to load
+                if (typeof docx === 'undefined') {
+                    alert('❌ Library is still loading. Please wait a moment and try again.');
+                    loading.classList.remove('active');
+                    return;
+                }
+                
+                const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, 
+                        AlignmentType, WidthType, BorderStyle, VerticalAlign } = docx;
+
+                // Get header data
+                const institutionName = document.getElementById('institutionName').value;
+                const examTitle = document.getElementById('examTitle').value;
+                const timeAllowed = document.getElementById('timeAllowed').value;
+                const sectionAMarks = document.getElementById('sectionAMarks').value;
+                const sectionBMarks = document.getElementById('sectionBMarks').value;
+                const sectionCMarks = document.getElementById('sectionCMarks').value;
+
+                // Parse Section A (MCQs)
+                const sectionAText = document.getElementById('sectionA').value.trim();
+                const mcqs = [];
+                if (sectionAText) {
+                    // Split by question numbers (1., 2., 3., etc.)
+                    const questionBlocks = sectionAText.split(/(?=^\d+\.)/m).filter(block => block.trim());
+                    
+                    questionBlocks.forEach(block => {
+                        const lines = block.split('\n').map(l => l.trim()).filter(l => l);
+                        
+                        if (lines.length > 0) {
+                            // First line is the question (remove number)
+                            const questionLine = lines[0].replace(/^\d+\.\s*/, '').trim();
+                            
+                            // Extract options from remaining lines
+                            let optA = '', optB = '', optC = '', optD = '';
+                            
+                            lines.slice(1).forEach(line => {
+                                if (line.match(/^A\./i)) {
+                                    optA = line.replace(/^A\.\s*/i, '').trim();
+                                } else if (line.match(/^B\./i)) {
+                                    optB = line.replace(/^B\.\s*/i, '').trim();
+                                } else if (line.match(/^C\./i)) {
+                                    optC = line.replace(/^C\.\s*/i, '').trim();
+                                } else if (line.match(/^D\./i)) {
+                                    optD = line.replace(/^D\.\s*/i, '').trim();
+                                }
+                            });
+                            
+                            if (questionLine && (optA || optB || optC || optD)) {
+                                mcqs.push({
+                                    question: questionLine,
+                                    a: optA,
+                                    b: optB,
+                                    c: optC,
+                                    d: optD
+                                });
+                            }
+                        }
+                    });
+                }
+
+                console.log('Parsed MCQs:', mcqs);
+
+                // Parse Section B (Short Questions)
+                const sectionBText = document.getElementById('sectionB').value.trim();
+                const shortQuestions = [];
+                if (sectionBText) {
+                    const lines = sectionBText.split('\n').filter(line => line.trim());
+                    lines.forEach(line => {
+                        const parts = line.split('||').map(p => p.trim());
+                        shortQuestions.push({
+                            q1: parts[0] || '',
+                            q2: parts[1] || ''
+                        });
+                    });
+                }
+
+                console.log('Parsed Short Questions:', shortQuestions);
+
+                // Parse Section C (Long Questions)
+                const sectionCText = document.getElementById('sectionC').value.trim();
+                const longQuestions = [];
+                if (sectionCText) {
+                    const lines = sectionCText.split('\n').filter(line => line.trim());
+                    lines.forEach(line => {
+                        const parts = line.split('||').map(p => p.trim());
+                        longQuestions.push({
+                            q1: parts[0] || '',
+                            q2: parts[1] || ''
+                        });
+                    });
+                }
+
+                console.log('Parsed Long Questions:', longQuestions);
+
+                // Build document
+                const border = { style: BorderStyle.SINGLE, size: 6, color: "000000" };
+                const borders = { top: border, bottom: border, left: border, right: border };
+
+                const children = [];
+
+                // Page 1 - Section A Header
+                children.push(
+                    new Paragraph({
+                        alignment: AlignmentType.CENTER,
+                        children: [new TextRun({ text: institutionName, bold: true, size: 28 })],
+                    }),
+                    new Paragraph({
+                        alignment: AlignmentType.CENTER,
+                        children: [new TextRun({ text: examTitle, bold: true, size: 24 })],
+                    }),
+                    new Paragraph({
+                        alignment: AlignmentType.CENTER,
+                        children: [
+                            new TextRun({ text: `SECTION – A (Marks ${sectionAMarks})                           Time allowed: ${timeAllowed}`, bold: true })
+                        ],
+                        border: {
+                            bottom: {
+                                color: "000000",
+                                space: 1,
+                                style: BorderStyle.SINGLE,
+                                size: 6
+                            }
+                        }
+                    }),
+                    new Paragraph({ text: "" }),
+                    new Paragraph({
+                        children: [new TextRun({ 
+                            text: "Section – A is compulsory. All parts of this section are to be answered on this page Deleting/overwriting/cutting of any sort is not allowed.",
+                            size: 20
+                        })],
+                        border: {
+                            bottom: {
+                                color: "000000",
+                                space: 1,
+                                style: BorderStyle.SINGLE,
+                                size: 6
+                            }
+                        }
+                    }),
+                    new Paragraph({
+                        children: [new TextRun({ 
+                            text: "Q1. Fill the relevant bubble against each question according to curriculum. Each part carries one mark.",
+                            bold: true,
+                            size: 20
+                        })],
+                    }),
+                    new Paragraph({ text: "" })
+                );
+
+                // Section A MCQ Table - Updated column widths
+                if (mcqs.length > 0) {
+                    const mcqRows = [
+                        new TableRow({
+                            children: [
+                                new TableCell({ borders, children: [new Paragraph({ text: "S#", alignment: AlignmentType.CENTER })], width: { size: 600, type: WidthType.DXA } }),
+                                new TableCell({ borders, children: [new Paragraph({ text: "Question", alignment: AlignmentType.CENTER })], width: { size: 4500, type: WidthType.DXA } }),
+                                new TableCell({ borders, children: [new Paragraph({ text: "(A)", alignment: AlignmentType.CENTER })], width: { size: 1400, type: WidthType.DXA } }),
+                                new TableCell({ borders, children: [new Paragraph({ text: "(B)", alignment: AlignmentType.CENTER })], width: { size: 1400, type: WidthType.DXA } }),
+                                new TableCell({ borders, children: [new Paragraph({ text: "(C)", alignment: AlignmentType.CENTER })], width: { size: 1400, type: WidthType.DXA } }),
+                                new TableCell({ borders, children: [new Paragraph({ text: "(D)", alignment: AlignmentType.CENTER })], width: { size: 1400, type: WidthType.DXA } }),
+                                new TableCell({ borders, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "A", size: 22 })] })], width: { size: 240, type: WidthType.DXA } }),
+                                new TableCell({ borders, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "B", size: 22 })] })], width: { size: 240, type: WidthType.DXA } }),
+                                new TableCell({ borders, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "C", size: 22 })] })], width: { size: 240, type: WidthType.DXA } }),
+                                new TableCell({ borders, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "D", size: 22 })] })], width: { size: 240, type: WidthType.DXA } }),
+                            ]
+                        })
+                    ];
+
+                    mcqs.forEach((mcq, idx) => {
+                        mcqRows.push(
+                            new TableRow({
+                                children: [
+                                    new TableCell({ borders, children: [new Paragraph({ text: `(${toRoman(idx + 1)})`, alignment: AlignmentType.CENTER })], width: { size: 600, type: WidthType.DXA } }),
+                                    new TableCell({ borders, children: [new Paragraph({ text: mcq.question })], width: { size: 4500, type: WidthType.DXA } }),
+                                    new TableCell({ borders, children: [new Paragraph({ text: mcq.a })], width: { size: 1400, type: WidthType.DXA } }),
+                                    new TableCell({ borders, children: [new Paragraph({ text: mcq.b })], width: { size: 1400, type: WidthType.DXA } }),
+                                    new TableCell({ borders, children: [new Paragraph({ text: mcq.c })], width: { size: 1400, type: WidthType.DXA } }),
+                                    new TableCell({ borders, children: [new Paragraph({ text: mcq.d })], width: { size: 1400, type: WidthType.DXA } }),
+                                    new TableCell({ borders, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "○", size: 22 })] })], width: { size: 240, type: WidthType.DXA } }),
+                                    new TableCell({ borders, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "○", size: 22 })] })], width: { size: 240, type: WidthType.DXA } }),
+                                    new TableCell({ borders, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "○", size: 22 })] })], width: { size: 240, type: WidthType.DXA } }),
+                                    new TableCell({ borders, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "○", size: 22 })] })], width: { size: 240, type: WidthType.DXA } }),
+                                ]
+                            })
+                        );
+                    });
+
+                    children.push(new Table({ rows: mcqRows, width: { size: 100, type: WidthType.PERCENTAGE } }));
+                }
+
+                // Page Break
+                const totalMarks = parseInt(sectionBMarks) * shortQuestions.length + parseInt(sectionCMarks) * longQuestions.length;
+                children.push(
+                    new Paragraph({ text: "", pageBreakBefore: true }),
+                    new Paragraph({
+                        alignment: AlignmentType.CENTER,
+                        children: [new TextRun({ text: institutionName, bold: true, size: 28 })],
+                    }),
+                    new Paragraph({
+                        alignment: AlignmentType.CENTER,
+                        children: [new TextRun({ text: examTitle, bold: true, size: 24 })],
+                    }),
+                    new Paragraph({
+                        alignment: AlignmentType.CENTER,
+                        children: [
+                            new TextRun({ text: `Time allowed: 90 min                                   Total Marks: ${totalMarks}`, bold: true })
+                        ],
+                    }),
+                    new Paragraph({ text: "" }),
+                    new Paragraph({
+                        children: [new TextRun({ 
+                            text: "Note: Sections 'B' and 'C' comprise page 1 and questions there are to be answered on the separately provided answer sheet.",
+                            size: 20
+                        })],
+                        border: {
+                            top: {
+                                color: "000000",
+                                space: 1,
+                                style: BorderStyle.SINGLE,
+                                size: 6
+                            },
+                            bottom: {
+                                color: "000000",
+                                space: 1,
+                                style: BorderStyle.SINGLE,
+                                size: 6
+                            }
+                        }
+                    }),
+                    new Paragraph({ text: "" })
+                );
+
+                // Section B
+                if (shortQuestions.length > 0) {
+                    children.push(
+                        new Paragraph({
+                            alignment: AlignmentType.CENTER,
+                            children: [new TextRun({ text: `SECTION-B MARKS (${shortQuestions.length} x ${sectionBMarks} = ${shortQuestions.length * parseInt(sectionBMarks)})`, bold: true, underline: {} })],
+                        }),
+                        new Paragraph({
+                            alignment: AlignmentType.LEFT,
+                            children: [new TextRun({ text: "Q.2 Answer the following questions.", bold: true })],
+                        }),
+                        new Paragraph({ text: "" })
+                    );
+
+                    const shortQRows = [];
+                    shortQuestions.forEach((q, idx) => {
+                        if (q.q2) {
+                            // Has OR alternative
+                            shortQRows.push(
+                                new TableRow({
+                                    children: [
+                                        new TableCell({ 
+                                            borders, 
+                                            children: [new Paragraph({ text: toRoman(idx + 1), alignment: AlignmentType.CENTER })], 
+                                            width: { size: 800, type: WidthType.DXA }, 
+                                            verticalAlign: VerticalAlign.CENTER 
+                                        }),
+                                        new TableCell({ 
+                                            borders, 
+                                            children: [new Paragraph({ text: q.q1 })], 
+                                            width: { size: 3500, type: WidthType.DXA } 
+                                        }),
+                                        new TableCell({ 
+                                            borders, 
+                                            children: [new Paragraph({ text: "OR", alignment: AlignmentType.CENTER, bold: true })], 
+                                            width: { size: 600, type: WidthType.DXA }, 
+                                            verticalAlign: VerticalAlign.CENTER 
+                                        }),
+                                        new TableCell({ 
+                                            borders, 
+                                            children: [new Paragraph({ text: q.q2 })], 
+                                            width: { size: 3500, type: WidthType.DXA } 
+                                        })
+                                    ]
+                                })
+                            );
+                        } else {
+                            // No OR alternative - span across OR and second question columns
+                            shortQRows.push(
+                                new TableRow({
+                                    children: [
+                                        new TableCell({ 
+                                            borders, 
+                                            children: [new Paragraph({ text: toRoman(idx + 1), alignment: AlignmentType.CENTER })], 
+                                            width: { size: 800, type: WidthType.DXA }, 
+                                            verticalAlign: VerticalAlign.CENTER 
+                                        }),
+                                        new TableCell({ 
+                                            borders, 
+                                            children: [new Paragraph({ text: q.q1 })], 
+                                            width: { size: 3500, type: WidthType.DXA } 
+                                        }),
+                                        new TableCell({ 
+                                            borders, 
+                                            children: [new Paragraph({ text: "" })], 
+                                            width: { size: 600, type: WidthType.DXA } 
+                                        }),
+                                        new TableCell({ 
+                                            borders, 
+                                            children: [new Paragraph({ text: "" })], 
+                                            width: { size: 3500, type: WidthType.DXA } 
+                                        })
+                                    ]
+                                })
+                            );
+                        }
+                    });
+
+                    children.push(new Table({ rows: shortQRows, width: { size: 100, type: WidthType.PERCENTAGE } }));
+                    children.push(new Paragraph({ text: "" }));
+                }
+
+                // Section C
+                if (longQuestions.length > 0) {
+                    children.push(
+                        new Paragraph({
+                            alignment: AlignmentType.CENTER,
+                            children: [new TextRun({ text: `SECTION-C (Marks ${longQuestions.length} x ${sectionCMarks} = ${longQuestions.length * parseInt(sectionCMarks)})`, bold: true, underline: {} })],
+                        }),
+                        new Paragraph({
+                            alignment: AlignmentType.LEFT,
+                            children: [new TextRun({ text: "Note: Answer the following questions and also draw diagram where needed.", size: 20 })],
+                        }),
+                        new Paragraph({ text: "" })
+                    );
+
+                    const longQRows = [];
+                    longQuestions.forEach((q, idx) => {
+                        if (q.q2) {
+                            // Has OR alternative
+                            longQRows.push(
+                                new TableRow({
+                                    children: [
+                                        new TableCell({ 
+                                            borders, 
+                                            children: [new Paragraph({ text: `Q${idx + 1}`, alignment: AlignmentType.CENTER })], 
+                                            width: { size: 800, type: WidthType.DXA }, 
+                                            verticalAlign: VerticalAlign.CENTER 
+                                        }),
+                                        new TableCell({ 
+                                            borders, 
+                                            children: [new Paragraph({ text: q.q1 })], 
+                                            width: { size: 3500, type: WidthType.DXA } 
+                                        }),
+                                        new TableCell({ 
+                                            borders, 
+                                            children: [new Paragraph({ text: "OR", alignment: AlignmentType.CENTER, bold: true })], 
+                                            width: { size: 600, type: WidthType.DXA }, 
+                                            verticalAlign: VerticalAlign.CENTER 
+                                        }),
+                                        new TableCell({ 
+                                            borders, 
+                                            children: [new Paragraph({ text: q.q2 })], 
+                                            width: { size: 3500, type: WidthType.DXA } 
+                                        })
+                                    ]
+                                })
+                            );
+                        } else {
+                            // No OR alternative - show empty cells
+                            longQRows.push(
+                                new TableRow({
+                                    children: [
+                                        new TableCell({ 
+                                            borders, 
+                                            children: [new Paragraph({ text: `Q${idx + 1}`, alignment: AlignmentType.CENTER })], 
+                                            width: { size: 800, type: WidthType.DXA }, 
+                                            verticalAlign: VerticalAlign.CENTER 
+                                        }),
+                                        new TableCell({ 
+                                            borders, 
+                                            children: [new Paragraph({ text: q.q1 })], 
+                                            width: { size: 3500, type: WidthType.DXA } 
+                                        }),
+                                        new TableCell({ 
+                                            borders, 
+                                            children: [new Paragraph({ text: "" })], 
+                                            width: { size: 600, type: WidthType.DXA } 
+                                        }),
+                                        new TableCell({ 
+                                            borders, 
+                                            children: [new Paragraph({ text: "" })], 
+                                            width: { size: 3500, type: WidthType.DXA } 
+                                        })
+                                    ]
+                                })
+                            );
+                        }
+                    });
+
+                    children.push(new Table({ rows: longQRows, width: { size: 100, type: WidthType.PERCENTAGE } }));
+                }
+
+                // Create document
+                const doc = new Document({
+                    sections: [{
+                        properties: {
+                            page: {
+                                size: { width: 12240, height: 15840 },
+                                margin: { top: 720, right: 720, bottom: 720, left: 720 } // 0.5 inch margins (720 DXA)
+                            }
+                        },
+                        children: children
+                    }]
+                });
+
+                // Generate and download
+                const blob = await Packer.toBlob(doc);
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'Question_Paper.docx';
+                a.click();
+
+                loading.classList.remove('active');
+                alert('✅ Question paper generated successfully!');
+
+            } catch (error) {
+                console.error('Error:', error);
+                alert('❌ Error generating document: ' + error.message);
+                loading.classList.remove('active');
+            }
+        }
+
+        function toRoman(num) {
+            const romanNumerals = ['i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', 'x', 
+                                   'xi', 'xii', 'xiii', 'xiv', 'xv', 'xvi', 'xvii', 'xviii', 'xix', 'xx'];
+            return romanNumerals[num - 1] || num.toString();
+        }
+    </script>
+</body>
+</html>
